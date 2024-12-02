@@ -4,6 +4,7 @@
   "version": "1.0",
   "description": "Stores clipboard history with formatting",
   "permissions": ["storage", "clipboardRead", "contextMenus"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
@@ -13,6 +14,7 @@
       "js": ["content.js"]
     }
   ],
+
   "action": {
     "default_popup": "index.html"
   }

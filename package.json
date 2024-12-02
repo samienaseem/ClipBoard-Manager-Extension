@@ -12,6 +12,7 @@
     "@testing-library/user-event": "^13.5.0",
     "date-fns": "^4.1.0",
     "react": "^18.3.1",
+    "react-chrome-extension": "^0.2.2",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
@@ -26,7 +27,10 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "globals": {
+      "chrome": "readonly"
+    }
   },
   "browserslist": {
     "production": [
