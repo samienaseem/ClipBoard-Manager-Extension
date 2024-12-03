@@ -1,27 +1,85 @@
+// background.js
+let connectionAttempts = 0;
+const MAX_ATTEMPTS = 3;
 
-if (typeof chrome !== 'undefined' && chrome.runtime) {
-  // Listener for extension installation
-  chrome.runtime.onInstalled.addListener(() => {
-    console.log('Extension installed');
-  });
+function initializeBackgroundScript() {
+  try {
+    if (chrome?.runtime) {
+      chrome.runtime.onInstalled.addListener(() => {
+        console.log('Extension installed/updated');
+        initializeStorage();
+      });
 
-  // Listen for messages from content scripts
-  chrome.runtime.onMessage.addListener(
-    async (message, sender, sendResponse) => {
-      if (message.type === 'COPY_EVENT') {
-        const text = message.text;
+      chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.type === 'SAVE_CLIPBOARD') {
+          handleClipboardSave(request, sender, sendResponse);
+          return true; // Will respond asynchronously
+        }
+      });
 
-        // Get and update copied items in storage
-        chrome.storage.local.get(['copiedItems'], (data) => {
-          const items = data.copiedItems || [];
-          items.push(text);
-          chrome.storage.local.set({ copiedItems: items }, () => {
-            console.log('Copied text saved:', text);
-          });
+      // Keep alive connection
+      chrome.runtime.onConnect.addListener((port) => {
+        console.log('New connection established');
+        port.onDisconnect.addListener(() => {
+          console.log('Connection lost, attempting reconnect...');
+          reconnect();
         });
-
-        sendResponse({ status: 'success' });
-      }
+      });
     }
-  );
+  } catch (error) {
+    console.error('Background script initialization error:', error);
+    reconnect();
+  }
 }
+
+function initializeStorage() {
+  chrome.storage.local.set({ clipboardHistory: [] }, () => {
+    console.log('Storage initialized');
+    if (chrome.runtime.lastError) {
+      console.error('Storage initialization error:', chrome.runtime.lastError);
+    }
+  });
+}
+
+function handleClipboardSave(request, sender, sendResponse) {
+  chrome.storage.local.get('clipboardHistory', (data) => {
+    try {
+      const history = data.clipboardHistory || [];
+      const newItem = {
+        id: Date.now(),
+        content: request.content,
+        html: request.html,
+        timestamp: new Date().toISOString(),
+        url: sender.tab?.url || 'Unknown source',
+      };
+
+      if (history.length >= 100) history.pop();
+      history.unshift(newItem);
+
+      chrome.storage.local.set({ clipboardHistory: history }, () => {
+        if (chrome.runtime.lastError) {
+          throw chrome.runtime.lastError;
+        }
+        sendResponse({ success: true });
+      });
+    } catch (error) {
+      console.error('Error saving clipboard:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+  });
+}
+
+function reconnect() {
+  if (connectionAttempts < MAX_ATTEMPTS) {
+    connectionAttempts++;
+    console.log(`Reconnection attempt ${connectionAttempts}/${MAX_ATTEMPTS}`);
+    setTimeout(() => {
+      initializeBackgroundScript();
+    }, 1000 * connectionAttempts); // Exponential backoff
+  } else {
+    console.error('Max reconnection attempts reached');
+  }
+}
+
+// Initial setup
+initializeBackgroundScript();

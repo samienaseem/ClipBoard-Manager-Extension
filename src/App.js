@@ -18,18 +18,51 @@ function App() {
   const [items, setItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
+    const checkConnection = () => {
+      if (chrome?.runtime) {
+        const port = chrome.runtime.connect();
+        port.onDisconnect.addListener(() => {
+          console.log('Lost connection to extension');
+          setIsConnected(false);
+          // Attempt to reconnect
+          setTimeout(checkConnection, 1000);
+        });
+        setIsConnected(true);
+      }
+    };
+
+    checkConnection();
     loadHistory();
   }, []);
 
   const loadHistory = () => {
-    if (chrome.storage) {
-      chrome.storage.local.get("clipboardHistory", (data) => {
-        setItems(data.clipboardHistory || []);
+    try {
+      chrome.storage.local.get('clipboardHistory', (data) => {
+        if (chrome.runtime.lastError) {
+          setError('Failed to load clipboard history');
+          console.error(chrome.runtime.lastError);
+        } else {
+          setItems(data.clipboardHistory || []);
+        }
       });
+    } catch (error) {
+      console.error('Error loading history:', error);
+      setError('Failed to connect to extension');
     }
   };
+
+  if (!isConnected) {
+    return (
+      <div>
+        <Alert severity="warning">
+          Lost connection to extension. Attempting to reconnect...
+        </Alert>
+      </div>
+    );
+  }
 
   const clearHistory = () => {
     if (chrome.storage) {
