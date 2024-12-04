@@ -18,13 +18,27 @@ function initializeBackgroundScript() {
       });
 
       // Keep alive connection
+      // chrome.runtime.onConnect.addListener((port) => {
+      //   console.log('New connection established');
+      //   port.onDisconnect.addListener(() => {
+      //     console.log('Connection lost, attempting reconnect...');
+      //     reconnect();
+      //   });
+      // });
+
       chrome.runtime.onConnect.addListener((port) => {
-        console.log('New connection established');
+        console.log(`New connection established: ${port.name}`);
+        port.onMessage.addListener((msg) => {
+          console.log('Message from content script:', msg);
+        });
+
         port.onDisconnect.addListener(() => {
-          console.log('Connection lost, attempting reconnect...');
-          reconnect();
+          console.log(`Connection ${port.name} lost, attempting reconnect...`);
+          reconnect(port.name);
         });
       });
+
+      
     }
   } catch (error) {
     console.error('Background script initialization error:', error);
