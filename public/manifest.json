@@ -3,7 +3,7 @@
   "name": "clipboardextension",
   "version": "1.0",
   "description": "Stores clipboard history with formatting",
-  "permissions": ["storage", "clipboardRead", "contextMenus"],
+  "permissions": ["storage", "clipboardRead", "contextMenus", "clipboardWrite"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
