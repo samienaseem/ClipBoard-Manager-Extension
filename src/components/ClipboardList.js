@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 
 const ClipboardList = ({ items }) => {
+    
   const handleCopy = (html, plainText) => {
     if (html) {
       const textarea = document.createElement('textarea');
