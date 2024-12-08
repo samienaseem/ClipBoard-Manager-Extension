@@ -5,7 +5,7 @@ function initializeBackgroundScript() {
   try {
     if (chrome?.runtime) {
       chrome.runtime.onInstalled.addListener(() => {
-        console.log('Extension installed/updated');
+        console.log('Extension installed/updated ');
         initializeStorage();
       });
 
