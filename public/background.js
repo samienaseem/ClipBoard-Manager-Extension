@@ -24,6 +24,9 @@ function initializeBackgroundScript() {
           console.log('Message from content script:', msg);
           handleClipboardSave1(msg,port)
           }
+          if (msg.type==="PASTE_EVENT"){
+            console.log("Message from content script:", msg)
+          }
         });
 
         port.onDisconnect.addListener(() => {
