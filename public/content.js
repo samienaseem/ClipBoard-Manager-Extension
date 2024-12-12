@@ -123,7 +123,7 @@ function setupCopyListener() {
     document.addEventListener('paste', (e) => {
       console.log('Paste method invoked');
       sendMessageToBackground('PASTE_EVENT', {
-        content: 'User triggered a paste event',
+        content: 'User triggered a paste event ',
       });
     });
   } catch (error) {
